@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TB Screening Form</title>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5; padding: 16px; color: #333;
+        }
+        .form-container {
+            max-width: 600px; margin: 0 auto; background: #fff;
+            border-radius: 12px; padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 { font-size: 1.4rem; color: #1a73e8; margin-bottom: 20px; text-align: center; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; }
+        .required::after { content: ' *'; color: #e53935; }
+        input[type="text"], select {
+            width: 100%; padding: 10px 12px; border: 1px solid #ddd;
+            border-radius: 8px; font-size: 0.95rem; background: #fafafa;
+        }
+        input:focus, select:focus { outline: none; border-color: #1a73e8; background: #fff; }
+        .select2-container { width: 100% !important; }
+        .select2-container--default .select2-selection--multiple {
+            border: 1px solid #ddd; border-radius: 8px;
+            min-height: 42px; background: #fafafa; padding: 4px 8px;
+        }
+        .select2-container--default .select2-selection--single {
+            border: 1px solid #ddd; border-radius: 8px; height: 42px; background: #fafafa;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 42px; padding-left: 12px;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow { height: 42px; }
+        .hidden { display: none; }
+        .btn-submit {
+            width: 100%; padding: 12px; background: #1a73e8; color: #fff;
+            border: none; border-radius: 8px; font-size: 1rem;
+            font-weight: 600; cursor: pointer; margin-top: 10px;
+        }
+        .btn-submit:hover { background: #1557b0; }
+        .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
+        .status { text-align: center; margin-top: 12px; font-size: 0.9rem; }
+        .status.success { color: #2e7d32; }
+        .status.error { color: #e53935; }
+    </style>
+</head>
+<body>
+<div class="form-container">
+    <h1>TB Screening Form</h1>
+    <form id="tbForm">
+
+        <!-- 1. City -->
+        <div class="form-group">
+            <label class="required" for="city">1. City</label>
+            <select id="city" required><option value="">-- Select City --</option></select>
+        </div>
+
+        <!-- 2. Hospital -->
+        <div class="form-group hidden" id="hospital-group">
+            <label class="required" for="hospital">2. Hospital Name</label>
+            <select id="hospital" required><option value="">-- Select Hospital --</option></select>
+        </div>
+
+        <!-- 3. Department -->
+        <div class="form-group hidden" id="department-group">
+            <label class="required" for="department">3. Department Name</label>
+            <select id="department" required><option value="">-- Select Department --</option></select>
+        </div>
+
+        <!-- 4. IPD Number -->
+        <div class="form-group">
+            <label class="required" for="ipd_number">4. IPD Number</label>
+            <input type="text" id="ipd_number" placeholder="Enter IPD number" required>
+        </div>
+
+        <!-- 5. Patient Name -->
+        <div class="form-group">
+            <label class="required" for="patient_name">5. Patient Name</label>
+            <input type="text" id="patient_name" placeholder="Enter patient name" required>
+        </div>
+
+        <!-- 6. Sex -->
+        <div class="form-group">
+            <label class="required" for="sex">6. Sex</label>
+            <select id="sex" required>
+                <option value="">-- Select --</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="others">Others</option>
+            </select>
+        </div>
+
+        <!-- 7. Key Population -->
+        <div class="form-group">
+            <label class="required" for="key_population">7. Key Population</label>
+            <select id="key_population" multiple="multiple">
+                <option value="a">A - Prisoners</option>
+                <option value="b">B - People living with HIV</option>
+                <option value="c">C - Contacts of TB patients</option>
+                <option value="d">D - Diabetics</option>
+                <option value="e">E - Tobacco users</option>
+                <option value="f">F - Malnourished</option>
+                <option value="g">G - Migrants</option>
+                <option value="h">H - Homeless</option>
+            </select>
+        </div>
+
+        <!-- 8. Symptoms -->
+        <div class="form-group">
+            <label class="required" for="symptoms">8. Symptoms</label>
+            <select id="symptoms" multiple="multiple">
+                <option value="cough">Cough (>2 weeks)</option>
+                <option value="fever">Fever</option>
+                <option value="weight_loss">Weight Loss</option>
+                <option value="no_symptoms">No Symptoms</option>
+            </select>
+        </div>
+
+        <!-- 9. Refer for X-ray -->
+        <div class="form-group">
+            <label class="required" for="refer_xray">9. Refer for X-ray</label>
+            <select id="refer_xray" required>
+                <option value="">-- Select --</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+            </select>
+        </div>
+
+        <!-- 9a. X-ray Result -->
+        <div class="form-group hidden" id="xray-result-group">
+            <label class="required" for="xray_result">9a. X-ray Result</label>
+            <select id="xray_result">
+                <option value="">-- Select --</option>
+                <option value="normal">Normal</option>
+                <option value="abnormal">Abnormal</option>
+            </select>
+        </div>
+
+        <!-- 10. CBNAAT/TRUENAT -->
+        <div class="form-group hidden" id="cbnaat-group">
+            <label class="required" for="refer_cbnaat">10. Referred for CBNAAT or TRUENAT</label>
+            <select id="refer_cbnaat">
+                <option value="">-- Select --</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">Submit</button>
+        <div class="status" id="status"></div>
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+// ── CASCADING DATA (replace with your real data) ──
+const DATA = {
+    cities: [
+        { name: "city_a", label: "City A" },
+        { name: "city_b", label: "City B" },
+        { name: "city_c", label: "City C" }
+    ],
+    hospitals: {
+        city_a: [
+            { name: "hosp_a_1", label: "Hospital A-1" },
+            { name: "hosp_a_2", label: "Hospital A-2" },
+            { name: "hosp_a_3", label: "Hospital A-3" }
+        ],
+        city_b: [
+            { name: "hosp_b_1", label: "Hospital B-1" },
+            { name: "hosp_b_2", label: "Hospital B-2" },
+            { name: "hosp_b_3", label: "Hospital B-3" }
+        ],
+        city_c: [
+            { name: "hosp_c_1", label: "Hospital C-1" },
+            { name: "hosp_c_2", label: "Hospital C-2" },
+            { name: "hosp_c_3", label: "Hospital C-3" }
+        ]
+    },
+    departments: [
+        { name: "general_medicine", label: "General Medicine" },
+        { name: "cardiology", label: "Cardiology" },
+        { name: "orthopedics", label: "Orthopedics" }
+    ]
+};
+
+// Populate cities
+DATA.cities.forEach(c => document.getElementById('city').add(new Option(c.label, c.name)));
+
+$(document).ready(function() {
+    // Init Select2
+    $('#city, #sex, #refer_xray, #xray_result, #refer_cbnaat').select2({ minimumResultsForSearch: Infinity });
+    $('#hospital, #department').select2({ minimumResultsForSearch: Infinity });
+    $('#key_population').select2({ placeholder: 'Select all that apply', closeOnSelect: false });
+    $('#symptoms').select2({ placeholder: 'Select symptoms', closeOnSelect: false });
+
+    // City → Hospital
+    $('#city').on('change', function() {
+        const city = this.value;
+        const sel = document.getElementById('hospital');
+        sel.innerHTML = '<option value="">-- Select Hospital --</option>';
+        document.getElementById('department-group').classList.add('hidden');
+        if (city && DATA.hospitals[city]) {
+            DATA.hospitals[city].forEach(h => sel.add(new Option(h.label, h.name)));
+            document.getElementById('hospital-group').classList.remove('hidden');
+        } else {
+            document.getElementById('hospital-group').classList.add('hidden');
+        }
+        $('#hospital').val('').trigger('change.select2');
+    });
+
+    // Hospital → Department
+    $('#hospital').on('change', function() {
+        const sel = document.getElementById('department');
+        sel.innerHTML = '<option value="">-- Select Department --</option>';
+        if (this.value) {
+            DATA.departments.forEach(d => sel.add(new Option(d.label, d.name)));
+            document.getElementById('department-group').classList.remove('hidden');
+        } else {
+            document.getElementById('department-group').classList.add('hidden');
+        }
+        $('#department').val('').trigger('change.select2');
+    });
+
+    // X-ray skip logic
+    $('#refer_xray').on('change', function() {
+        const g = document.getElementById('xray-result-group');
+        if (this.value === 'yes') { g.classList.remove('hidden'); }
+        else { g.classList.add('hidden'); $('#xray_result').val('').trigger('change'); }
+    });
+
+    // Symptoms → CBNAAT skip logic
+    $('#symptoms').on('change', function() {
+        const sel = $(this).val() || [];
+        const hasReal = sel.length > 0 && !(sel.length === 1 && sel[0] === 'no_symptoms');
+        const g = document.getElementById('cbnaat-group');
+        if (hasReal) { g.classList.remove('hidden'); }
+        else { g.classList.add('hidden'); $('#refer_cbnaat').val('').trigger('change'); }
+    });
+});
+
+// ── SUBMIT → Netlify Function proxy (token hidden server-side) ──
+document.getElementById('tbForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    const status = document.getElementById('status');
+
+    const formData = {
+        city: $('#city').val(),
+        hospital: $('#hospital').val(),
+        department: $('#department').val(),
+        ipd_number: document.getElementById('ipd_number').value,
+        patient_name: document.getElementById('patient_name').value,
+        sex: $('#sex').val(),
+        key_population: ($('#key_population').val() || []).join(' '),
+        symptoms: ($('#symptoms').val() || []).join(' '),
+        refer_xray: $('#refer_xray').val(),
+        xray_result: $('#xray_result').val() || '',
+        refer_cbnaat_truenat: $('#refer_cbnaat').val() || ''
+    };
+
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+    status.textContent = '';
+
+    try {
+        const resp = await fetch('/.netlify/functions/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        if (resp.ok) {
+            status.className = 'status success';
+            status.textContent = 'Submitted successfully!';
+            document.getElementById('tbForm').reset();
+            $('#key_population, #symptoms').val(null).trigger('change');
+            $('#city, #sex, #refer_xray').val('').trigger('change');
+            document.getElementById('hospital-group').classList.add('hidden');
+            document.getElementById('department-group').classList.add('hidden');
+            document.getElementById('xray-result-group').classList.add('hidden');
+            document.getElementById('cbnaat-group').classList.add('hidden');
+        } else {
+            throw new Error(`Server error (${resp.status})`);
+        }
+    } catch (err) {
+        status.className = 'status error';
+        status.textContent = `Failed: ${err.message}. Saved locally.`;
+        const saved = JSON.parse(localStorage.getItem('tb_submissions') || '[]');
+        saved.push({ ...formData, timestamp: new Date().toISOString() });
+        localStorage.setItem('tb_submissions', JSON.stringify(saved));
+    }
+    btn.disabled = false;
+    btn.textContent = 'Submit';
+});
+</script>
+</body>
+</html>
