@@ -38,6 +38,16 @@
         }
         .select2-container--default .select2-selection--single .select2-selection__arrow { height: 42px; }
         .hidden { display: none; }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            background: #1a73e8; color: #fff; border: none;
+            border-radius: 4px; padding: 2px 8px; margin: 2px;
+            font-size: 0.85rem;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+            color: #fff; margin-right: 4px;
+        }
+        .select2-dropdown { border-radius: 8px; border: 1px solid #ddd; }
+        .select2-results__option--highlighted { background: #1a73e8 !important; }
         .btn-submit {
             width: 100%; padding: 12px; background: #1a73e8; color: #fff;
             border: none; border-radius: 8px; font-size: 1rem;
@@ -196,10 +206,11 @@ DATA.cities.forEach(c => document.getElementById('city').add(new Option(c.label,
 
 $(document).ready(function() {
     // Init Select2
-    $('#city, #sex, #refer_xray, #xray_result, #refer_cbnaat').select2({ minimumResultsForSearch: Infinity });
-    $('#hospital, #department').select2({ minimumResultsForSearch: Infinity });
-    $('#key_population').select2({ placeholder: 'Select all that apply', closeOnSelect: false });
-    $('#symptoms').select2({ placeholder: 'Select symptoms', closeOnSelect: false });
+    $('#city, #sex').select2({ placeholder: '-- Select --', allowClear: true, minimumResultsForSearch: Infinity });
+    $('#refer_xray, #xray_result, #refer_cbnaat').select2({ placeholder: '-- Select --', allowClear: true, minimumResultsForSearch: Infinity });
+    $('#hospital, #department').select2({ placeholder: '-- Select --', allowClear: true, minimumResultsForSearch: Infinity });
+    $('#key_population').select2({ placeholder: 'Select all that apply', closeOnSelect: true });
+    $('#symptoms').select2({ placeholder: 'Select symptoms', closeOnSelect: true });
 
     // City → Hospital
     $('#city').on('change', function() {
