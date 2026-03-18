@@ -1,4 +1,4 @@
-// Serverless proxy — submits to KoboToolbox via kc API (v1 submissions endpoint)
+// Serverless proxy — submits to KoboToolbox
 const crypto = require('crypto');
 
 exports.handler = async (event) => {
@@ -17,9 +17,7 @@ exports.handler = async (event) => {
 
     const KOBO_TOKEN = process.env.KOBO_API_TOKEN;
     const KOBO_ASSET_UID = process.env.KOBO_ASSET_UID;
-    const KC_SERVER = process.env.KOBO_SERVER
-        ? process.env.KOBO_SERVER.replace('kf.', 'kc.')
-        : 'https://kc.kobotoolbox.org';
+    const KF_SERVER = process.env.KOBO_SERVER || 'https://kf.kobotoolbox.org';
 
     if (!KOBO_TOKEN || !KOBO_ASSET_UID) {
         return {
@@ -32,8 +30,9 @@ exports.handler = async (event) => {
         const formData = JSON.parse(event.body);
         const instanceId = 'uuid:' + crypto.randomUUID();
 
-        // Build submission in the format KoboToolbox expects
-        const submission = {
+        // Try v1 submission first (kc endpoint)
+        const kcServer = KF_SERVER.replace('kf.', 'kc.');
+        const v1Payload = {
             id: KOBO_ASSET_UID,
             submission: {
                 ...formData,
@@ -42,31 +41,56 @@ exports.handler = async (event) => {
             }
         };
 
-        const url = `${KC_SERVER}/api/v1/submissions`;
-
-        const resp = await fetch(url, {
+        let resp = await fetch(`${kcServer}/api/v1/submissions?format=json`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Token ${KOBO_TOKEN}`
             },
-            body: JSON.stringify(submission)
+            body: JSON.stringify(v1Payload)
         });
+
+        // If v1 fails, try v2 endpoint
+        if (resp.status === 404) {
+            const v2Url = `${KF_SERVER}/api/v2/assets/${KOBO_ASSET_UID}/submissions/`;
+            resp = await fetch(v2Url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${KOBO_TOKEN}`
+                },
+                body: JSON.stringify({
+                    submission: {
+                        ...formData,
+                        'meta/instanceID': instanceId
+                    }
+                })
+            });
+        }
 
         const data = await resp.text();
 
-        if (resp.status === 201 || resp.status === 202) {
+        // Log for debugging (visible in Netlify function logs)
+        console.log('Response status:', resp.status);
+        console.log('Response body:', data);
+
+        if (resp.status >= 200 && resp.status < 300) {
             return {
                 statusCode: 201, headers,
-                body: JSON.stringify({ success: true, message: 'Submitted' })
+                body: JSON.stringify({ success: true })
             };
         }
 
         return {
             statusCode: resp.status, headers,
-            body: JSON.stringify({ error: 'Submission failed', detail: data })
+            body: JSON.stringify({
+                error: 'Submission failed',
+                status: resp.status,
+                detail: data
+            })
         };
     } catch (err) {
+        console.log('Error:', err.message);
         return {
             statusCode: 500, headers,
             body: JSON.stringify({ error: err.message })
