@@ -1,4 +1,3 @@
-// Serverless proxy — submits to KoboToolbox
 const crypto = require('crypto');
 
 exports.handler = async (event) => {
@@ -18,82 +17,71 @@ exports.handler = async (event) => {
     const KOBO_TOKEN = process.env.KOBO_API_TOKEN;
     const KOBO_ASSET_UID = process.env.KOBO_ASSET_UID;
     const KF_SERVER = process.env.KOBO_SERVER || 'https://kf.kobotoolbox.org';
+    const kcServer = KF_SERVER.replace('kf.', 'kc.');
 
     if (!KOBO_TOKEN || !KOBO_ASSET_UID) {
-        return {
-            statusCode: 500, headers,
-            body: JSON.stringify({ error: 'Missing KOBO_API_TOKEN or KOBO_ASSET_UID' })
-        };
+        return { statusCode: 500, headers, body: JSON.stringify({ error: 'Missing env vars' }) };
     }
 
     try {
         const formData = JSON.parse(event.body);
         const instanceId = 'uuid:' + crypto.randomUUID();
 
-        // Try v1 submission first (kc endpoint)
-        const kcServer = KF_SERVER.replace('kf.', 'kc.');
-        const v1Payload = {
-            id: KOBO_ASSET_UID,
+        // Get form UUID from kc API
+        const formsResp = await fetch(
+            `${kcServer}/api/v1/forms?format=json`,
+            { headers: { 'Authorization': `Token ${KOBO_TOKEN}` } }
+        );
+        const forms = await formsResp.json();
+        let formUUID = null;
+        let formIdString = null;
+        for (const f of forms) {
+            if (f.id_string === KOBO_ASSET_UID) {
+                formUUID = f.uuid;
+                formIdString = f.id_string;
+                break;
+            }
+        }
+        console.log('Found form:', formIdString, 'uuid:', formUUID);
+
+        // Build submission with nested meta and formhub objects
+        const submission = {
+            id: formIdString || KOBO_ASSET_UID,
             submission: {
                 ...formData,
-                'meta/instanceID': instanceId,
-                'formhub/uuid': KOBO_ASSET_UID
+                meta: {
+                    instanceID: instanceId
+                },
+                formhub: {
+                    uuid: formUUID || KOBO_ASSET_UID
+                }
             }
         };
 
-        let resp = await fetch(`${kcServer}/api/v1/submissions?format=json`, {
+        console.log('Payload:', JSON.stringify(submission).substring(0, 500));
+
+        const resp = await fetch(`${kcServer}/api/v1/submissions?format=json`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Token ${KOBO_TOKEN}`
             },
-            body: JSON.stringify(v1Payload)
+            body: JSON.stringify(submission)
         });
 
-        // If v1 fails, try v2 endpoint
-        if (resp.status === 404) {
-            const v2Url = `${KF_SERVER}/api/v2/assets/${KOBO_ASSET_UID}/submissions/`;
-            resp = await fetch(v2Url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Token ${KOBO_TOKEN}`
-                },
-                body: JSON.stringify({
-                    submission: {
-                        ...formData,
-                        'meta/instanceID': instanceId
-                    }
-                })
-            });
-        }
-
         const data = await resp.text();
-
-        // Log for debugging (visible in Netlify function logs)
-        console.log('Response status:', resp.status);
-        console.log('Response body:', data);
+        console.log('Response:', resp.status, data);
 
         if (resp.status >= 200 && resp.status < 300) {
-            return {
-                statusCode: 201, headers,
-                body: JSON.stringify({ success: true })
-            };
+            return { statusCode: 201, headers, body: JSON.stringify({ success: true }) };
         }
 
         return {
             statusCode: resp.status, headers,
-            body: JSON.stringify({
-                error: 'Submission failed',
-                status: resp.status,
-                detail: data
-            })
+            body: JSON.stringify({ error: 'Submission failed', status: resp.status, detail: data })
         };
     } catch (err) {
         console.log('Error:', err.message);
-        return {
-            statusCode: 500, headers,
-            body: JSON.stringify({ error: err.message })
-        };
+        return { statusCode: 500, headers, body: JSON.stringify({ error: err.message }) };
     }
 };
