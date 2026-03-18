@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TB Screening Form</title>
+    <title>Screening Form</title>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -26,10 +26,6 @@
         }
         input:focus, select:focus { outline: none; border-color: #1a73e8; background: #fff; }
         .select2-container { width: 100% !important; }
-        .select2-container--default .select2-selection--multiple {
-            border: 1px solid #ddd; border-radius: 8px;
-            min-height: 42px; background: #fafafa; padding: 4px 8px;
-        }
         .select2-container--default .select2-selection--single {
             border: 1px solid #ddd; border-radius: 8px; height: 42px; background: #fafafa;
         }
@@ -37,17 +33,9 @@
             line-height: 42px; padding-left: 12px;
         }
         .select2-container--default .select2-selection--single .select2-selection__arrow { height: 42px; }
-        .hidden { display: none; }
-        .select2-container--default .select2-selection--multiple .select2-selection__choice {
-            background: #1a73e8; color: #fff; border: none;
-            border-radius: 4px; padding: 2px 8px; margin: 2px;
-            font-size: 0.85rem;
-        }
-        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
-            color: #fff; margin-right: 4px;
-        }
         .select2-dropdown { border-radius: 8px; border: 1px solid #ddd; }
         .select2-results__option--highlighted { background: #1a73e8 !important; }
+        .hidden { display: none; }
         .btn-submit {
             width: 100%; padding: 12px; background: #1a73e8; color: #fff;
             border: none; border-radius: 8px; font-size: 1rem;
@@ -58,46 +46,100 @@
         .status { text-align: center; margin-top: 12px; font-size: 0.9rem; }
         .status.success { color: #2e7d32; }
         .status.error { color: #e53935; }
+
+        /* Multi-select popup trigger button */
+        .multi-trigger {
+            width: 100%; padding: 10px 12px; border: 1px solid #ddd;
+            border-radius: 8px; font-size: 0.95rem; background: #fafafa;
+            text-align: left; cursor: pointer; color: #333;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .multi-trigger .arrow { color: #999; font-size: 0.8rem; }
+        .multi-trigger .tags { display: flex; flex-wrap: wrap; gap: 4px; }
+        .multi-trigger .tag {
+            background: #1a73e8; color: #fff; border-radius: 4px;
+            padding: 2px 8px; font-size: 0.8rem;
+        }
+        .multi-trigger .placeholder { color: #999; }
+
+        /* Popup overlay */
+        .popup-overlay {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+            z-index: 1000; justify-content: center; align-items: flex-end;
+        }
+        .popup-overlay.active { display: flex; }
+        .popup-box {
+            background: #fff; width: 100%; max-width: 600px;
+            border-radius: 16px 16px 0 0; padding: 20px;
+            max-height: 70vh; display: flex; flex-direction: column;
+            animation: slideUp 0.2s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .popup-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #eee;
+        }
+        .popup-header h3 { font-size: 1.1rem; color: #333; }
+        .popup-done {
+            background: #1a73e8; color: #fff; border: none;
+            border-radius: 8px; padding: 8px 20px; font-size: 0.95rem;
+            font-weight: 600; cursor: pointer;
+        }
+        .popup-list {
+            overflow-y: auto; flex: 1;
+        }
+        .popup-item {
+            display: flex; align-items: center; padding: 12px 8px;
+            border-bottom: 1px solid #f0f0f0; cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .popup-item:active { background: #f5f5f5; }
+        .popup-item input[type="checkbox"] {
+            width: 20px; height: 20px; margin-right: 12px;
+            accent-color: #1a73e8; flex-shrink: 0;
+        }
+        .popup-item label {
+            font-weight: 400; font-size: 0.95rem; margin: 0; cursor: pointer;
+        }
     </style>
 </head>
 <body>
 <div class="form-container">
-    <h1>TB Screening Form</h1>
+    <h1>Screening Form</h1>
     <form id="tbForm">
 
         <!-- 1. City -->
         <div class="form-group">
-            <label class="required" for="city">1. City</label>
+            <label class="required">1. City</label>
             <select id="city" required><option value="">-- Select City --</option></select>
         </div>
-
         <!-- 2. Hospital -->
         <div class="form-group hidden" id="hospital-group">
-            <label class="required" for="hospital">2. Hospital Name</label>
+            <label class="required">2. Hospital Name</label>
             <select id="hospital" required><option value="">-- Select Hospital --</option></select>
         </div>
-
         <!-- 3. Department -->
         <div class="form-group hidden" id="department-group">
-            <label class="required" for="department">3. Department Name</label>
+            <label class="required">3. Department Name</label>
             <select id="department" required><option value="">-- Select Department --</option></select>
         </div>
-
         <!-- 4. IPD Number -->
         <div class="form-group">
-            <label class="required" for="ipd_number">4. IPD Number</label>
+            <label class="required">4. IPD Number</label>
             <input type="text" id="ipd_number" placeholder="Enter IPD number" required>
         </div>
-
         <!-- 5. Patient Name -->
         <div class="form-group">
-            <label class="required" for="patient_name">5. Patient Name</label>
+            <label class="required">5. Patient Name</label>
             <input type="text" id="patient_name" placeholder="Enter patient name" required>
         </div>
-
         <!-- 6. Sex -->
         <div class="form-group">
-            <label class="required" for="sex">6. Sex</label>
+            <label class="required">6. Sex</label>
             <select id="sex" required>
                 <option value="">-- Select --</option>
                 <option value="male">Male</option>
@@ -106,55 +148,47 @@
             </select>
         </div>
 
-        <!-- 7. Key Population -->
+        <!-- 7. Key Population (custom popup multi-select) -->
         <div class="form-group">
-            <label class="required" for="key_population">7. Key Population</label>
-            <select id="key_population" multiple="multiple">
-                <option value="a">A - Prisoners</option>
-                <option value="b">B - People living with HIV</option>
-                <option value="c">C - Contacts of TB patients</option>
-                <option value="d">D - Diabetics</option>
-                <option value="e">E - Tobacco users</option>
-                <option value="f">F - Malnourished</option>
-                <option value="g">G - Migrants</option>
-                <option value="h">H - Homeless</option>
-            </select>
+            <label class="required">7. Key Population</label>
+            <button type="button" class="multi-trigger" id="kp-trigger">
+                <span class="placeholder">Select all that apply</span>
+                <span class="arrow">▼</span>
+            </button>
+            <input type="hidden" id="key_population" name="key_population">
         </div>
 
-        <!-- 8. Symptoms -->
+        <!-- 8. Symptoms (custom popup multi-select) -->
         <div class="form-group">
-            <label class="required" for="symptoms">8. Symptoms</label>
-            <select id="symptoms" multiple="multiple">
-                <option value="cough">Cough (>2 weeks)</option>
-                <option value="fever">Fever</option>
-                <option value="weight_loss">Weight Loss</option>
-                <option value="no_symptoms">No Symptoms</option>
-            </select>
+            <label class="required">8. Symptoms</label>
+            <button type="button" class="multi-trigger" id="sym-trigger">
+                <span class="placeholder">Select symptoms</span>
+                <span class="arrow">▼</span>
+            </button>
+            <input type="hidden" id="symptoms" name="symptoms">
         </div>
 
         <!-- 9. Refer for X-ray -->
         <div class="form-group">
-            <label class="required" for="refer_xray">9. Refer for X-ray</label>
+            <label class="required">9. Refer for X-ray</label>
             <select id="refer_xray" required>
                 <option value="">-- Select --</option>
                 <option value="yes">Yes</option>
                 <option value="no">No</option>
             </select>
         </div>
-
         <!-- 9a. X-ray Result -->
         <div class="form-group hidden" id="xray-result-group">
-            <label class="required" for="xray_result">9a. X-ray Result</label>
+            <label class="required">9a. X-ray Result</label>
             <select id="xray_result">
                 <option value="">-- Select --</option>
                 <option value="normal">Normal</option>
                 <option value="abnormal">Abnormal</option>
             </select>
         </div>
-
         <!-- 10. CBNAAT/TRUENAT -->
         <div class="form-group hidden" id="cbnaat-group">
-            <label class="required" for="refer_cbnaat">10. Referred for CBNAAT or TRUENAT</label>
+            <label class="required">10. Referred for CBNAAT or TRUENAT</label>
             <select id="refer_cbnaat">
                 <option value="">-- Select --</option>
                 <option value="yes">Yes</option>
@@ -167,10 +201,32 @@
     </form>
 </div>
 
+<!-- Popup for Key Population -->
+<div class="popup-overlay" id="kp-popup">
+    <div class="popup-box">
+        <div class="popup-header">
+            <h3>Key Population</h3>
+            <button class="popup-done" data-popup="kp-popup">Done</button>
+        </div>
+        <div class="popup-list" id="kp-list"></div>
+    </div>
+</div>
+
+<!-- Popup for Symptoms -->
+<div class="popup-overlay" id="sym-popup">
+    <div class="popup-box">
+        <div class="popup-header">
+            <h3>Symptoms</h3>
+            <button class="popup-done" data-popup="sym-popup">Done</button>
+        </div>
+        <div class="popup-list" id="sym-list"></div>
+    </div>
+</div>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
-// ── CASCADING DATA (replace with your real data) ──
+// ── DATA ──
 const DATA = {
     cities: [
         { name: "city_a", label: "City A" },
@@ -198,21 +254,115 @@ const DATA = {
         { name: "general_medicine", label: "General Medicine" },
         { name: "cardiology", label: "Cardiology" },
         { name: "orthopedics", label: "Orthopedics" }
+    ],
+    keyPopulation: [
+        { value: "a", label: "A - Prisoners" },
+        { value: "b", label: "B - People living with HIV" },
+        { value: "c", label: "C - Contacts of TB patients" },
+        { value: "d", label: "D - Diabetics" },
+        { value: "e", label: "E - Tobacco users" },
+        { value: "f", label: "F - Malnourished" },
+        { value: "g", label: "G - Migrants" },
+        { value: "h", label: "H - Homeless" }
+    ],
+    symptoms: [
+        { value: "cough", label: "Cough (>2 weeks)" },
+        { value: "fever", label: "Fever" },
+        { value: "weight_loss", label: "Weight Loss" },
+        { value: "no_symptoms", label: "No Symptoms" }
     ]
 };
 
-// Populate cities
+// ── MULTI-SELECT POPUP LOGIC ──
+function buildPopupList(containerId, items) {
+    const container = document.getElementById(containerId);
+    items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'popup-item';
+        div.innerHTML = `<input type="checkbox" value="${item.value}" id="chk_${containerId}_${item.value}">
+            <label for="chk_${containerId}_${item.value}">${item.label}</label>`;
+        div.addEventListener('click', (e) => {
+            if (e.target.tagName !== 'INPUT') {
+                const cb = div.querySelector('input');
+                cb.checked = !cb.checked;
+            }
+        });
+        container.appendChild(div);
+    });
+}
+
+function getCheckedValues(containerId) {
+    return Array.from(document.querySelectorAll(`#${containerId} input:checked`)).map(cb => cb.value);
+}
+
+function getCheckedLabels(containerId) {
+    return Array.from(document.querySelectorAll(`#${containerId} input:checked`)).map(cb => {
+        return cb.nextElementSibling.textContent;
+    });
+}
+
+function updateTrigger(triggerId, containerId, placeholder) {
+    const trigger = document.getElementById(triggerId);
+    const labels = getCheckedLabels(containerId);
+    if (labels.length === 0) {
+        trigger.innerHTML = `<span class="placeholder">${placeholder}</span><span class="arrow">▼</span>`;
+    } else {
+        const tags = labels.map(l => `<span class="tag">${l}</span>`).join('');
+        trigger.innerHTML = `<span class="tags">${tags}</span><span class="arrow">▼</span>`;
+    }
+}
+
+// Build popup lists
+buildPopupList('kp-list', DATA.keyPopulation);
+buildPopupList('sym-list', DATA.symptoms);
+
+// Open popups
+document.getElementById('kp-trigger').addEventListener('click', () => {
+    document.getElementById('kp-popup').classList.add('active');
+});
+document.getElementById('sym-trigger').addEventListener('click', () => {
+    document.getElementById('sym-popup').classList.add('active');
+});
+
+// Done buttons
+document.querySelectorAll('.popup-done').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const popupId = btn.dataset.popup;
+        document.getElementById(popupId).classList.remove('active');
+
+        if (popupId === 'kp-popup') {
+            const vals = getCheckedValues('kp-list');
+            document.getElementById('key_population').value = vals.join(' ');
+            updateTrigger('kp-trigger', 'kp-list', 'Select all that apply');
+        }
+        if (popupId === 'sym-popup') {
+            const vals = getCheckedValues('sym-list');
+            document.getElementById('symptoms').value = vals.join(' ');
+            updateTrigger('sym-trigger', 'sym-list', 'Select symptoms');
+            // CBNAAT skip logic
+            const hasReal = vals.length > 0 && !(vals.length === 1 && vals[0] === 'no_symptoms');
+            const g = document.getElementById('cbnaat-group');
+            if (hasReal) { g.classList.remove('hidden'); }
+            else { g.classList.add('hidden'); $('#refer_cbnaat').val('').trigger('change'); }
+        }
+    });
+});
+
+// Close popup on overlay click
+document.querySelectorAll('.popup-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.classList.remove('active');
+    });
+});
+
+// ── SELECT2 for single selects ──
 DATA.cities.forEach(c => document.getElementById('city').add(new Option(c.label, c.name)));
 
 $(document).ready(function() {
-    // Init Select2
     $('#city, #sex').select2({ placeholder: '-- Select --', allowClear: true, minimumResultsForSearch: Infinity });
     $('#refer_xray, #xray_result, #refer_cbnaat').select2({ placeholder: '-- Select --', allowClear: true, minimumResultsForSearch: Infinity });
     $('#hospital, #department').select2({ placeholder: '-- Select --', allowClear: true, minimumResultsForSearch: Infinity });
-    $('#key_population').select2({ placeholder: 'Select all that apply', closeOnSelect: true });
-    $('#symptoms').select2({ placeholder: 'Select symptoms', closeOnSelect: true });
 
-    // City → Hospital
     $('#city').on('change', function() {
         const city = this.value;
         const sel = document.getElementById('hospital');
@@ -227,7 +377,6 @@ $(document).ready(function() {
         $('#hospital').val('').trigger('change.select2');
     });
 
-    // Hospital → Department
     $('#hospital').on('change', function() {
         const sel = document.getElementById('department');
         sel.innerHTML = '<option value="">-- Select Department --</option>';
@@ -240,24 +389,14 @@ $(document).ready(function() {
         $('#department').val('').trigger('change.select2');
     });
 
-    // X-ray skip logic
     $('#refer_xray').on('change', function() {
         const g = document.getElementById('xray-result-group');
         if (this.value === 'yes') { g.classList.remove('hidden'); }
         else { g.classList.add('hidden'); $('#xray_result').val('').trigger('change'); }
     });
-
-    // Symptoms → CBNAAT skip logic
-    $('#symptoms').on('change', function() {
-        const sel = $(this).val() || [];
-        const hasReal = sel.length > 0 && !(sel.length === 1 && sel[0] === 'no_symptoms');
-        const g = document.getElementById('cbnaat-group');
-        if (hasReal) { g.classList.remove('hidden'); }
-        else { g.classList.add('hidden'); $('#refer_cbnaat').val('').trigger('change'); }
-    });
 });
 
-// ── SUBMIT → Netlify Function proxy (token hidden server-side) ──
+// ── SUBMIT ──
 document.getElementById('tbForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn = document.getElementById('submitBtn');
@@ -270,8 +409,8 @@ document.getElementById('tbForm').addEventListener('submit', async function(e) {
         ipd_number: document.getElementById('ipd_number').value,
         patient_name: document.getElementById('patient_name').value,
         sex: $('#sex').val(),
-        key_population: ($('#key_population').val() || []).join(' '),
-        symptoms: ($('#symptoms').val() || []).join(' '),
+        key_population: document.getElementById('key_population').value,
+        symptoms: document.getElementById('symptoms').value,
         refer_xray: $('#refer_xray').val(),
         xray_result: $('#xray_result').val() || '',
         refer_cbnaat_truenat: $('#refer_cbnaat').val() || ''
@@ -291,7 +430,12 @@ document.getElementById('tbForm').addEventListener('submit', async function(e) {
             status.className = 'status success';
             status.textContent = 'Submitted successfully!';
             document.getElementById('tbForm').reset();
-            $('#key_population, #symptoms').val(null).trigger('change');
+            // Reset popups
+            document.querySelectorAll('.popup-list input').forEach(cb => cb.checked = false);
+            document.getElementById('key_population').value = '';
+            document.getElementById('symptoms').value = '';
+            updateTrigger('kp-trigger', 'kp-list', 'Select all that apply');
+            updateTrigger('sym-trigger', 'sym-list', 'Select symptoms');
             $('#city, #sex, #refer_xray').val('').trigger('change');
             document.getElementById('hospital-group').classList.add('hidden');
             document.getElementById('department-group').classList.add('hidden');
